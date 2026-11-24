@@ -1,0 +1,404 @@
+using Toybox.WatchUi;
+using Toybox.Graphics;
+using Toybox.System;
+using Toybox.Lang;
+using Toybox.Time;
+using Toybox.Time.Gregorian;
+using Toybox.Application;
+using Toybox.Timer;
+using Toybox.Math;
+
+class MainView extends WatchUi.View {
+    var screenWidth;
+    var screenHeight;
+    var currentPage;
+    var refreshTimer;
+    var totalPages;
+    var cx;
+    var titleY;
+    var contentY;
+
+    function initialize() {
+        View.initialize();
+        currentPage = 0;
+        totalPages = 7;
+    }
+
+    function onLayout(dc) {
+        screenWidth = dc.getWidth();
+        screenHeight = dc.getHeight();
+        cx = screenWidth / 2;
+        titleY = screenHeight / 6 + 5;
+        contentY = titleY + 32;
+    }
+
+    function onShow() {
+        var app = Application.getApp();
+        app.dataManager.fetchAllData();
+        var intervalMs = app.dataManager.settings.refreshIntervalMinutes * 60 * 1000;
+        if (refreshTimer != null) { refreshTimer.stop(); }
+        refreshTimer = new Timer.Timer();
+        refreshTimer.start(method(:onRefreshTimer), intervalMs, true);
+    }
+
+    function onHide() {
+        if (refreshTimer != null) { refreshTimer.stop(); refreshTimer = null; }
+    }
+
+    function onRefreshTimer() as Void {
+        Application.getApp().dataManager.fetchAllData();
+    }
+
+    function onUpdate(dc) {
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.fillRectangle(0, 0, screenWidth, screenHeight);
+
+        var dm = Application.getApp().dataManager;
+        if (dm.getTodayData() == null) {
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, screenHeight / 3, Graphics.FONT_SMALL,
+                "Chargement...", Graphics.TEXT_JUSTIFY_CENTER);
+            return;
+        }
+
+        if (currentPage == 0) { drawPageToday(dc); }
+        else if (currentPage == 1) { drawPageTides(dc); }
+        else if (currentPage == 2) { drawPageWaves(dc); }
+        else if (currentPage == 3) { drawPageWind(dc); }
+        else { drawPageDays(dc); }
+
+        drawFooter(dc);
+    }
+
+    function drawFooter(dc) {
+        var pageStr = (currentPage + 1) + "/" + totalPages;
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, screenHeight - 18, Graphics.FONT_TINY,
+            pageStr, Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    function drawPageToday(dc) {
+        var dm = Application.getApp().dataManager;
+        var today = dm.getTodayData();
+        var y = titleY;
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, y, Graphics.FONT_MEDIUM, "Waves", Graphics.TEXT_JUSTIFY_CENTER);
+        y = contentY;
+
+        var info = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, y, Graphics.FONT_TINY,
+            info.day_of_week + " " + info.day + "/" + info.month,
+            Graphics.TEXT_JUSTIFY_CENTER);
+        y += 26;
+
+        if (today.tide != null && today.tide.events.size() > 0) {
+            var nextTide = getNextTideEvent(today);
+            dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_TINY, "PROCHAINE MARÉE", Graphics.TEXT_JUSTIFY_CENTER);
+            y += 16;
+            dc.setColor(nextTide.type == 1 ? Graphics.COLOR_BLUE : Graphics.COLOR_DK_GREEN,
+                Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_LARGE,
+                nextTide.getLabel() + " " + nextTide.getTimeString(),
+                Graphics.TEXT_JUSTIFY_CENTER);
+            y += 30;
+            dc.drawText(cx, y, Graphics.FONT_MEDIUM,
+                nextTide.height.format("%.1f") + "m",
+                Graphics.TEXT_JUSTIFY_CENTER);
+            y += 28;
+        }
+
+        if (today.surf != null) {
+            dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_TINY, "VAGUES", Graphics.TEXT_JUSTIFY_CENTER);
+            y += 16;
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_MEDIUM,
+                today.surf.averageWaveHeight.format("%.1f") + "m",
+                Graphics.TEXT_JUSTIFY_CENTER);
+            y += 24;
+            if (today.surf.hourlyData.size() > 0) {
+                var hr = today.surf.hourlyData[0];
+                dc.drawText(cx, y, Graphics.FONT_TINY,
+                    hr.swellDirection + " " + hr.swellPeriod + "s",
+                    Graphics.TEXT_JUSTIFY_CENTER);
+                y += 20;
+            }
+        }
+
+        if (today.surf != null && today.surf.hourlyData.size() > 0) {
+            var hr = today.surf.hourlyData[0];
+            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_TINY, "VENT", Graphics.TEXT_JUSTIFY_CENTER);
+            y += 16;
+            drawWindArrow(dc, cx, y + 8, hr.windDirection, hr.windSpeed, 12);
+            y += 22;
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_TINY,
+                hr.windDirection + "  " + hr.windSpeed + " km/h",
+                Graphics.TEXT_JUSTIFY_CENTER);
+        }
+    }
+
+    function drawPageTides(dc) {
+        var today = Application.getApp().dataManager.getTodayData();
+        var y = titleY;
+
+        dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, y, Graphics.FONT_SMALL, "MARÉES", Graphics.TEXT_JUSTIFY_CENTER);
+        y = contentY;
+
+        if (today.tide == null) {
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_TINY, "N/A", Graphics.TEXT_JUSTIFY_CENTER);
+            return;
+        }
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, y, Graphics.FONT_TINY,
+            "Coeff: " + today.tide.morningCoeff + " / " + today.tide.afternoonCoeff,
+            Graphics.TEXT_JUSTIFY_CENTER);
+        y += 28;
+
+        for (var i = 0; i < today.tide.events.size(); i++) {
+            var ev = today.tide.events[i];
+            dc.setColor(ev.type == 1 ? Graphics.COLOR_BLUE : Graphics.COLOR_DK_GREEN,
+                Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx - 55, y, Graphics.FONT_TINY,
+                ev.getLabel(), Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(cx, y, Graphics.FONT_TINY,
+                ev.getTimeString(), Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(cx + 55, y, Graphics.FONT_TINY,
+                ev.height.format("%.1f") + "m", Graphics.TEXT_JUSTIFY_RIGHT);
+            y += 24;
+        }
+    }
+
+    function drawPageWaves(dc) {
+        var today = Application.getApp().dataManager.getTodayData();
+        var y = titleY;
+
+        dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, y, Graphics.FONT_SMALL, "VAGUES", Graphics.TEXT_JUSTIFY_CENTER);
+        y = contentY;
+
+        if (today.surf == null || today.surf.hourlyData.size() == 0) {
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_TINY, "N/A", Graphics.TEXT_JUSTIFY_CENTER);
+            return;
+        }
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, y, Graphics.FONT_TINY,
+            "Moy: " + today.surf.averageWaveHeight.format("%.1f") + "m",
+            Graphics.TEXT_JUSTIFY_CENTER);
+        y += 28;
+
+        var maxHours = 4;
+        var step = (today.surf.hourlyData.size() / maxHours).toNumber();
+        if (step < 1) { step = 1; }
+
+        for (var i = 0; i < today.surf.hourlyData.size(); i += step) {
+            var hr = today.surf.hourlyData[i];
+            dc.setColor(getWaveColor(hr.waveHeight), Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx - 75, y, Graphics.FONT_TINY,
+                hr.hour + "h", Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(cx - 35, y, Graphics.FONT_TINY,
+                hr.waveHeight.format("%.1f") + "m", Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(cx + 5, y, Graphics.FONT_TINY,
+                hr.swellDirection, Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(cx + 50, y, Graphics.FONT_TINY,
+                hr.swellPeriod + "s", Graphics.TEXT_JUSTIFY_LEFT);
+            y += 24;
+        }
+    }
+
+    function drawPageWind(dc) {
+        var today = Application.getApp().dataManager.getTodayData();
+        var y = titleY;
+
+        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, y, Graphics.FONT_SMALL, "VENT", Graphics.TEXT_JUSTIFY_CENTER);
+        y = contentY;
+
+        if (today.surf == null || today.surf.hourlyData.size() == 0) {
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_TINY, "N/A", Graphics.TEXT_JUSTIFY_CENTER);
+            return;
+        }
+
+        for (var i = 0; i < today.surf.hourlyData.size(); i++) {
+            var hr = today.surf.hourlyData[i];
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(15, y + 2, Graphics.FONT_TINY, hr.hour + "h", Graphics.TEXT_JUSTIFY_LEFT);
+
+            drawWindArrow(dc, 58, y + 5, hr.windDirection, hr.windSpeed, 9);
+
+            dc.setColor(getWindColor(hr.windSpeed), Graphics.COLOR_TRANSPARENT);
+            dc.drawText(78, y, Graphics.FONT_TINY, hr.windDirection, Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(cx, y, Graphics.FONT_TINY, hr.windSpeed + " km/h", Graphics.TEXT_JUSTIFY_LEFT);
+            if (hr.windGusts > hr.windSpeed) {
+                dc.drawText(cx + 55, y, Graphics.FONT_TINY,
+                    "R:" + hr.windGusts, Graphics.TEXT_JUSTIFY_LEFT);
+            }
+            y += 28;
+        }
+    }
+
+    function drawPageDays(dc) {
+        var pageIdx = currentPage - 4;
+        var multiData = Application.getApp().dataManager.getMultiDayData();
+        var labels = ["JOURS 2-3", "JOURS 4-5", "JOURS 6-7"];
+        var startDay = 1 + pageIdx * 2;
+        var y = titleY;
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, y, Graphics.FONT_SMALL, labels[pageIdx], Graphics.TEXT_JUSTIFY_CENTER);
+        y = contentY;
+
+        for (var d = startDay; d <= startDay + 1 && d < multiData.size(); d++) {
+            var day = multiData[d];
+            if (day == null) { continue; }
+
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, y, Graphics.FONT_TINY, day.dayLabel, Graphics.TEXT_JUSTIFY_CENTER);
+            y += 18;
+
+            if (day.tide != null) {
+                dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(cx, y, Graphics.FONT_TINY,
+                    "Coeff: " + day.tide.morningCoeff + "/" + day.tide.afternoonCoeff,
+                    Graphics.TEXT_JUSTIFY_CENTER);
+                y += 16;
+                if (day.tide.events.size() > 0) {
+                    var ev = day.tide.events[0];
+                    dc.setColor(ev.type == 1 ? Graphics.COLOR_BLUE : Graphics.COLOR_DK_GREEN,
+                        Graphics.COLOR_TRANSPARENT);
+                    dc.drawText(cx, y, Graphics.FONT_TINY,
+                        ev.getLabel() + " " + ev.getTimeString(),
+                        Graphics.TEXT_JUSTIFY_CENTER);
+                    y += 16;
+                }
+            }
+            if (day.surf != null) {
+                dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(cx, y, Graphics.FONT_TINY,
+                    day.surf.averageWaveHeight.format("%.1f") + "m",
+                    Graphics.TEXT_JUSTIFY_CENTER);
+                if (day.surf.hourlyData.size() > 0) {
+                    var hr = day.surf.hourlyData[0];
+                    drawWindArrow(dc, cx - 30, y + 4, hr.windDirection, hr.windSpeed, 7);
+                    dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+                    dc.drawText(cx, y + 4, Graphics.FONT_TINY,
+                        hr.windDirection + " " + hr.windSpeed + "km/h",
+                        Graphics.TEXT_JUSTIFY_LEFT);
+                }
+            }
+            y += 26;
+        }
+    }
+
+    function getNextTideEvent(data) {
+        var now = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        var nowMin = now.hour * 60 + now.min;
+        var next = null;
+        if (data.tide != null) {
+            for (var i = 0; i < data.tide.events.size(); i++) {
+                var ev = data.tide.events[i];
+                if (ev.hour * 60 + ev.minute > nowMin) {
+                    next = ev;
+                    break;
+                }
+            }
+            if (next == null && data.tide.events.size() > 0) {
+                next = data.tide.events[0];
+            }
+        }
+        return next;
+    }
+
+    function drawWindArrow(dc, x, y, direction, speed, size) {
+        var dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+        var angle = 0;
+        for (var i = 0; i < dirs.size(); i++) {
+            if (dirs[i].equals(direction)) {
+                angle = i * 22.5;
+                break;
+            }
+        }
+        var rad = Math.toRadians(angle);
+        var cos = Math.cos(rad);
+        var sin = Math.sin(rad);
+        var tipX = x + sin * size;
+        var tipY = y - cos * size;
+        var a2 = rad + 2.5;
+        var a3 = rad - 2.5;
+        var s2 = size * 0.45;
+        var leftX = x + sin * s2 + Math.cos(a2) * s2;
+        var leftY = y - cos * s2 + Math.sin(a2) * s2;
+        var rightX = x + sin * s2 + Math.cos(a3) * s2;
+        var rightY = y - cos * s2 + Math.sin(a3) * s2;
+        dc.setColor(getWindColor(speed), Graphics.COLOR_TRANSPARENT);
+        dc.fillPolygon([[tipX, tipY], [leftX, leftY], [rightX, rightY]]);
+    }
+
+    function getWaveColor(height) {
+        if (height >= 2.0f) { return Graphics.COLOR_RED; }
+        if (height >= 1.0f) { return Graphics.COLOR_ORANGE; }
+        if (height >= 0.5f) { return Graphics.COLOR_YELLOW; }
+        return Graphics.COLOR_LT_GRAY;
+    }
+
+    function getWindColor(speed) {
+        if (speed >= 25) { return Graphics.COLOR_RED; }
+        if (speed >= 15) { return Graphics.COLOR_ORANGE; }
+        if (speed >= 8) { return Graphics.COLOR_GREEN; }
+        return Graphics.COLOR_BLUE;
+    }
+
+    function nextPage() {
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            WatchUi.requestUpdate();
+            return true;
+        }
+        return false;
+    }
+
+    function prevPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            WatchUi.requestUpdate();
+            return true;
+        }
+        return false;
+    }
+}
+
+class MainViewDelegate extends WatchUi.BehaviorDelegate {
+    var view;
+
+    function initialize(view_) {
+        BehaviorDelegate.initialize();
+        view = view_;
+    }
+
+    function onSwipe(evt) {
+        if (evt.getDirection() == WatchUi.SWIPE_LEFT) {
+            return view.nextPage();
+        }
+        if (evt.getDirection() == WatchUi.SWIPE_RIGHT) {
+            return view.prevPage();
+        }
+        if (evt.getDirection() == WatchUi.SWIPE_UP) {
+            var sv = new SettingsView();
+            var sd = new SettingsViewDelegate(sv);
+            WatchUi.pushView(sv, sd, WatchUi.SLIDE_UP);
+            return true;
+        }
+        return false;
+    }
+}

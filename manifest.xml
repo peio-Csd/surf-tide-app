@@ -1,34 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq">
-    <iq:application id="8a7b6c5d4e3f2a1b0c9d8e7f" type="watchapp" name="Surf&Tide">
+<iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
+    <iq:application id="ea2c7aefdce5488d83e3d48137c121dd" type="watch-app" name="@Strings.AppName" entry="SurfTideApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="4.0.0">
+        <!-- Montres rondes récentes (API >= 5). Référence de rendu : fr165m (Forerunner 165 Music). -->
         <iq:products>
+            <iq:product id="d2airx10"/>
+            <iq:product id="d2mach1"/>
+            <iq:product id="d2mach2"/>
+            <iq:product id="d2mach2pro"/>
+            <iq:product id="enduro3"/>
+            <iq:product id="epix2"/>
+            <iq:product id="epix2pro42mm"/>
+            <iq:product id="epix2pro47mm"/>
+            <iq:product id="epix2pro51mm"/>
+            <iq:product id="fenix7"/>
+            <iq:product id="fenix7pro"/>
+            <iq:product id="fenix7pronowifi"/>
+            <iq:product id="fenix7s"/>
+            <iq:product id="fenix7spro"/>
+            <iq:product id="fenix7x"/>
+            <iq:product id="fenix7xpro"/>
+            <iq:product id="fenix7xpronowifi"/>
+            <iq:product id="fenix843mm"/>
+            <iq:product id="fenix847mm"/>
+            <iq:product id="fenix8pro47mm"/>
+            <iq:product id="fenix8solar47mm"/>
+            <iq:product id="fenix8solar51mm"/>
+            <iq:product id="fenixe"/>
             <iq:product id="fr165"/>
+            <iq:product id="fr165m"/>
+            <iq:product id="fr170"/>
+            <iq:product id="fr170m"/>
+            <iq:product id="fr255"/>
+            <iq:product id="fr255m"/>
+            <iq:product id="fr255s"/>
+            <iq:product id="fr255sm"/>
             <iq:product id="fr265"/>
             <iq:product id="fr265s"/>
+            <iq:product id="fr57042mm"/>
+            <iq:product id="fr57047mm"/>
+            <iq:product id="fr70"/>
             <iq:product id="fr955"/>
             <iq:product id="fr965"/>
-            <iq:product id="ven3"/>
-            <iq:product id="enix7"/>
+            <iq:product id="fr970"/>
+            <iq:product id="instinct3amoled45mm"/>
+            <iq:product id="instinct3amoled50mm"/>
+            <iq:product id="instinctcrossoveramoled"/>
+            <iq:product id="marq2"/>
+            <iq:product id="marq2aviator"/>
+            <iq:product id="venu2"/>
+            <iq:product id="venu2plus"/>
+            <iq:product id="venu2s"/>
+            <iq:product id="venu3"/>
+            <iq:product id="venu3s"/>
+            <iq:product id="venu441mm"/>
+            <iq:product id="venu445mm"/>
+            <iq:product id="vivoactive5"/>
+            <iq:product id="vivoactive6"/>
         </iq:products>
 
         <iq:permissions>
             <iq:uses-permission id="Communications"/>
-            <iq:uses-permission id="Sensor"/>
-            <iq:uses-permission id="SensorHistory"/>
-            <iq:uses-permission id="UserProfile"/>
-            <iq:uses-permission id="PersistedContent"/>
-            <iq:uses-permission id="Background"/>
         </iq:permissions>
 
         <iq:languages>
-            <iq:language>fra</iq:language>
+            <iq:language>fre</iq:language>
             <iq:language>eng</iq:language>
         </iq:languages>
 
-        <iq:dataField>
-            <iq:label>Surf&Tide</iq:label>
-        </iq:dataField>
-
-        <iq:sdkVersion>4.1.5</iq:sdkVersion>
+        <iq:barrels/>
     </iq:application>
 </iq:manifest>

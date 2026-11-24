@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FICHIER GÉNÉRÉ par proxy-server/scripts/generate-watch-spots.js — ne pas modifier à la main. -->
+<resources>
+    <!-- Réglage modifiable depuis l'app Garmin Connect (téléphone) -->
+    <settings>
+        <setting propertyKey="@Properties.spot" title="@Strings.SpotTitle">
+            <settingConfig type="list">
+                <listEntry value="1203">@Strings.Spot1203</listEntry>
+                <listEntry value="1205">@Strings.Spot1205</listEntry>
+                <listEntry value="1208">@Strings.Spot1208</listEntry>
+                <listEntry value="1204">@Strings.Spot1204</listEntry>
+                <listEntry value="1206">@Strings.Spot1206</listEntry>
+                <listEntry value="1059">@Strings.Spot1059</listEntry>
+                <listEntry value="1207">@Strings.Spot1207</listEntry>
+                <listEntry value="102794">@Strings.Spot102794</listEntry>
+                <listEntry value="1209">@Strings.Spot1209</listEntry>
+                <listEntry value="1093">@Strings.Spot1093</listEntry>
+                <listEntry value="998">@Strings.Spot998</listEntry>
+                <listEntry value="1211">@Strings.Spot1211</listEntry>
+                <listEntry value="1210">@Strings.Spot1210</listEntry>
+                <listEntry value="999">@Strings.Spot999</listEntry>
+                <listEntry value="1214">@Strings.Spot1214</listEntry>
+                <listEntry value="1213">@Strings.Spot1213</listEntry>
+                <listEntry value="1212">@Strings.Spot1212</listEntry>
+                <listEntry value="1026">@Strings.Spot1026</listEntry>
+                <listEntry value="1215">@Strings.Spot1215</listEntry>
+                <listEntry value="997">@Strings.Spot997</listEntry>
+                <listEntry value="1221">@Strings.Spot1221</listEntry>
+                <listEntry value="1216">@Strings.Spot1216</listEntry>
+                <listEntry value="1217">@Strings.Spot1217</listEntry>
+                <listEntry value="1027">@Strings.Spot1027</listEntry>
+                <listEntry value="1087">@Strings.Spot1087</listEntry>
+                <listEntry value="1091">@Strings.Spot1091</listEntry>
+                <listEntry value="1021">@Strings.Spot1021</listEntry>
+                <listEntry value="1218">@Strings.Spot1218</listEntry>
+                <listEntry value="1000">@Strings.Spot1000</listEntry>
+                <listEntry value="1001">@Strings.Spot1001</listEntry>
+                <listEntry value="1011">@Strings.Spot1011</listEntry>
+                <listEntry value="1194">@Strings.Spot1194</listEntry>
+                <listEntry value="1196">@Strings.Spot1196</listEntry>
+                <listEntry value="1198">@Strings.Spot1198</listEntry>
+                <listEntry value="1195">@Strings.Spot1195</listEntry>
+                <listEntry value="1099">@Strings.Spot1099</listEntry>
+                <listEntry value="1197">@Strings.Spot1197</listEntry>
+                <listEntry value="1192">@Strings.Spot1192</listEntry>
+                <listEntry value="1191">@Strings.Spot1191</listEntry>
+                <listEntry value="68">@Strings.Spot68</listEntry>
+                <listEntry value="1193">@Strings.Spot1193</listEntry>
+                <listEntry value="1190">@Strings.Spot1190</listEntry>
+                <listEntry value="1042">@Strings.Spot1042</listEntry>
+                <listEntry value="1199">@Strings.Spot1199</listEntry>
+                <listEntry value="1009">@Strings.Spot1009</listEntry>
+                <listEntry value="1062">@Strings.Spot1062</listEntry>
+                <listEntry value="1186">@Strings.Spot1186</listEntry>
+                <listEntry value="102799">@Strings.Spot102799</listEntry>
+                <listEntry value="1063">@Strings.Spot1063</listEntry>
+                <listEntry value="1200">@Strings.Spot1200</listEntry>
+                <listEntry value="1078">@Strings.Spot1078</listEntry>
+                <listEntry value="1188">@Strings.Spot1188</listEntry>
+                <listEntry value="1189">@Strings.Spot1189</listEntry>
+                <listEntry value="1187">@Strings.Spot1187</listEntry>
+                <listEntry value="1056">@Strings.Spot1056</listEntry>
+                <listEntry value="1083">@Strings.Spot1083</listEntry>
+                <listEntry value="1015">@Strings.Spot1015</listEntry>
+                <listEntry value="1100">@Strings.Spot1100</listEntry>
+                <listEntry value="1202">@Strings.Spot1202</listEntry>
+                <listEntry value="1201">@Strings.Spot1201</listEntry>
+                <listEntry value="1090">@Strings.Spot1090</listEntry>
+                <listEntry value="1061">@Strings.Spot1061</listEntry>
+                <listEntry value="1081">@Strings.Spot1081</listEntry>
+                <listEntry value="1010">@Strings.Spot1010</listEntry>
+                <listEntry value="1045">@Strings.Spot1045</listEntry>
+                <listEntry value="45">@Strings.Spot45</listEntry>
+                <listEntry value="1013">@Strings.Spot1013</listEntry>
+                <listEntry value="1046">@Strings.Spot1046</listEntry>
+                <listEntry value="1029">@Strings.Spot1029</listEntry>
+                <listEntry value="1185">@Strings.Spot1185</listEntry>
+                <listEntry value="1043">@Strings.Spot1043</listEntry>
+                <listEntry value="1049">@Strings.Spot1049</listEntry>
+                <listEntry value="1184">@Strings.Spot1184</listEntry>
+                <listEntry value="1052">@Strings.Spot1052</listEntry>
+                <listEntry value="1064">@Strings.Spot1064</listEntry>
+                <listEntry value="1183">@Strings.Spot1183</listEntry>
+                <listEntry value="1080">@Strings.Spot1080</listEntry>
+            </settingConfig>
+        </setting>
+    </settings>
+</resources>

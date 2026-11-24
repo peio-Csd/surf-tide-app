@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <properties>
+        <!-- Identifiant surf-report du spot (voir proxy-server/spots.json). 998 = Biarritz Grande Plage -->
+        <property id="spot" type="number">998</property>
+    </properties>
+</resources>

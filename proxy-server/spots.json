@@ -1,0 +1,541 @@
+[
+ {
+  "id": 1203,
+  "slug": "la-barre-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "La Barre"
+ },
+ {
+  "id": 1205,
+  "slug": "la-madrague-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "La Madrague"
+ },
+ {
+  "id": 1208,
+  "slug": "le-club-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "Le Club"
+ },
+ {
+  "id": 1204,
+  "slug": "les-cavaliers-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "Les Cavaliers"
+ },
+ {
+  "id": 1206,
+  "slug": "les-corsaires-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "Les Corsaires"
+ },
+ {
+  "id": 1059,
+  "slug": "les-sables-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "Les Sables D'or"
+ },
+ {
+  "id": 1207,
+  "slug": "marinella-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "Marinella"
+ },
+ {
+  "id": 102794,
+  "slug": "plage-ocean-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "Plage De L'océan"
+ },
+ {
+  "id": 1209,
+  "slug": "vvf-anglet",
+  "region": "pays-basque",
+  "city": "Anglet",
+  "beach": "VVF"
+ },
+ {
+  "id": 1093,
+  "slug": "cote-basques-biarritz",
+  "region": "pays-basque",
+  "city": "Biarritz",
+  "beach": "Côte Des Basques"
+ },
+ {
+  "id": 998,
+  "slug": "biarritz-grande-plage",
+  "region": "pays-basque",
+  "city": "Biarritz",
+  "beach": "Grande Plage"
+ },
+ {
+  "id": 1211,
+  "slug": "la-milady-biarritz",
+  "region": "pays-basque",
+  "city": "Biarritz",
+  "beach": "La Milady"
+ },
+ {
+  "id": 1210,
+  "slug": "marbella-biarritz",
+  "region": "pays-basque",
+  "city": "Biarritz",
+  "beach": "Marbella"
+ },
+ {
+  "id": 999,
+  "slug": "bidart",
+  "region": "pays-basque",
+  "city": "Bidart",
+  "beach": ""
+ },
+ {
+  "id": 1214,
+  "slug": "centre-bidart",
+  "region": "pays-basque",
+  "city": "Bidart",
+  "beach": "Centre"
+ },
+ {
+  "id": 1213,
+  "slug": "erretegia-bidart",
+  "region": "pays-basque",
+  "city": "Bidart",
+  "beach": "Erretegia"
+ },
+ {
+  "id": 1212,
+  "slug": "ilbarritz-bidart",
+  "region": "pays-basque",
+  "city": "Bidart",
+  "beach": "Ilbarritz"
+ },
+ {
+  "id": 1026,
+  "slug": "parlementia-bidart",
+  "region": "pays-basque",
+  "city": "Bidart",
+  "beach": "Parlementia"
+ },
+ {
+  "id": 1215,
+  "slug": "uhabia-bidart",
+  "region": "pays-basque",
+  "city": "Bidart",
+  "beach": "Uhabia"
+ },
+ {
+  "id": 997,
+  "slug": "belharra",
+  "region": "pays-basque",
+  "city": "Ciboure",
+  "beach": "Belharra"
+ },
+ {
+  "id": 1221,
+  "slug": "socoa",
+  "region": "pays-basque",
+  "city": "Ciboure",
+  "beach": "Socoa"
+ },
+ {
+  "id": 1216,
+  "slug": "avalanche-alcyons-guethary",
+  "region": "pays-basque",
+  "city": "Guethary",
+  "beach": "Avalanche / Les Alcyons"
+ },
+ {
+  "id": 1217,
+  "slug": "cenitz-guethary",
+  "region": "pays-basque",
+  "city": "Guethary",
+  "beach": "Cenitz"
+ },
+ {
+  "id": 1027,
+  "slug": "hendaye",
+  "region": "pays-basque",
+  "city": "Hendaye",
+  "beach": ""
+ },
+ {
+  "id": 1087,
+  "slug": "vanthrax-hendaye",
+  "region": "pays-basque",
+  "city": "Hendaye",
+  "beach": "Vanthrax"
+ },
+ {
+  "id": 1091,
+  "slug": "saint-jean-luz",
+  "region": "pays-basque",
+  "city": "St Jean De Luz",
+  "beach": ""
+ },
+ {
+  "id": 1021,
+  "slug": "erromardie",
+  "region": "pays-basque",
+  "city": "St Jean De Luz",
+  "beach": "Erromardie"
+ },
+ {
+  "id": 1218,
+  "slug": "lafitenia-saint-jean-luz",
+  "region": "pays-basque",
+  "city": "St Jean De Luz",
+  "beach": "Lafitenia"
+ },
+ {
+  "id": 1000,
+  "slug": "biscarrosse",
+  "region": "landes",
+  "city": "Biscarrosse",
+  "beach": ""
+ },
+ {
+  "id": 1001,
+  "slug": "boucau-tarnos",
+  "region": "landes",
+  "city": "Boucau Tarnos",
+  "beach": ""
+ },
+ {
+  "id": 1011,
+  "slug": "capbreton",
+  "region": "landes",
+  "city": "Capbreton",
+  "beach": ""
+ },
+ {
+  "id": 1194,
+  "slug": "la-centrale-capbreton",
+  "region": "landes",
+  "city": "Capbreton",
+  "beach": "La Centrale"
+ },
+ {
+  "id": 1196,
+  "slug": "la-piste-capbreton",
+  "region": "landes",
+  "city": "Capbreton",
+  "beach": "La Piste"
+ },
+ {
+  "id": 1198,
+  "slug": "la-pointe-capbreton",
+  "region": "landes",
+  "city": "Capbreton",
+  "beach": "La Pointe"
+ },
+ {
+  "id": 1195,
+  "slug": "le-prevent-capbreton",
+  "region": "landes",
+  "city": "Capbreton",
+  "beach": "Le Prévent"
+ },
+ {
+  "id": 1099,
+  "slug": "santocha-capbreton",
+  "region": "landes",
+  "city": "Capbreton",
+  "beach": "Santocha"
+ },
+ {
+  "id": 1197,
+  "slug": "vvf-capbreton",
+  "region": "landes",
+  "city": "Capbreton",
+  "beach": "VVF"
+ },
+ {
+  "id": 1192,
+  "slug": "hossegor-centrale",
+  "region": "landes",
+  "city": "Hossegor",
+  "beach": "La Centrale"
+ },
+ {
+  "id": 1191,
+  "slug": "la-graviere-hossegor",
+  "region": "landes",
+  "city": "Hossegor",
+  "beach": "La Gravière"
+ },
+ {
+  "id": 68,
+  "slug": "la-nord-hossegor",
+  "region": "landes",
+  "city": "Hossegor",
+  "beach": "La Nord"
+ },
+ {
+  "id": 1193,
+  "slug": "la-sud-hossegor",
+  "region": "landes",
+  "city": "Hossegor",
+  "beach": "La Sud"
+ },
+ {
+  "id": 1190,
+  "slug": "les-culs-nus-hossegor",
+  "region": "landes",
+  "city": "Hossegor",
+  "beach": "Les Culs Nus"
+ },
+ {
+  "id": 1042,
+  "slug": "labenne",
+  "region": "landes",
+  "city": "Labenne",
+  "beach": ""
+ },
+ {
+  "id": 1199,
+  "slug": "plage-centrale-labenne",
+  "region": "landes",
+  "city": "Labenne",
+  "beach": "Plage Centrale"
+ },
+ {
+  "id": 1009,
+  "slug": "cap-homy-lit-mixe",
+  "region": "landes",
+  "city": "Lit Et Mixe",
+  "beach": "Cap De L'homy"
+ },
+ {
+  "id": 1062,
+  "slug": "mimizan",
+  "region": "landes",
+  "city": "Mimizan",
+  "beach": ""
+ },
+ {
+  "id": 1186,
+  "slug": "lespecier",
+  "region": "landes",
+  "city": "Mimizan",
+  "beach": "Lespecier"
+ },
+ {
+  "id": 102799,
+  "slug": "moliets-plage-centrale",
+  "region": "landes",
+  "city": "Moliets Et Maa",
+  "beach": "Plage La Centrale"
+ },
+ {
+  "id": 1063,
+  "slug": "moliets-plage-chenes-lieges",
+  "region": "landes",
+  "city": "Moliets Et Maa",
+  "beach": "Plage des Chênes Lièges"
+ },
+ {
+  "id": 1200,
+  "slug": "ondres",
+  "region": "landes",
+  "city": "Ondres",
+  "beach": ""
+ },
+ {
+  "id": 1078,
+  "slug": "seignosse",
+  "region": "landes",
+  "city": "Seignosse",
+  "beach": ""
+ },
+ {
+  "id": 1188,
+  "slug": "le-penon-seignosse",
+  "region": "landes",
+  "city": "Seignosse",
+  "beach": "Le Penon"
+ },
+ {
+  "id": 1189,
+  "slug": "les-bourdaines-seignosse",
+  "region": "landes",
+  "city": "Seignosse",
+  "beach": "Les Bourdaines"
+ },
+ {
+  "id": 1187,
+  "slug": "les-casernes-seignosse",
+  "region": "landes",
+  "city": "Seignosse",
+  "beach": "Les Casernes"
+ },
+ {
+  "id": 1056,
+  "slug": "les-estagnots-seignosse",
+  "region": "landes",
+  "city": "Seignosse",
+  "beach": "Les Estagnots"
+ },
+ {
+  "id": 1083,
+  "slug": "saint-girons",
+  "region": "landes",
+  "city": "St Girons",
+  "beach": ""
+ },
+ {
+  "id": 1015,
+  "slug": "contis-plage",
+  "region": "landes",
+  "city": "St Julien En Born",
+  "beach": "Contis Plage"
+ },
+ {
+  "id": 1100,
+  "slug": "tarnos",
+  "region": "landes",
+  "city": "Tarnos",
+  "beach": ""
+ },
+ {
+  "id": 1202,
+  "slug": "la-digue-tarnos",
+  "region": "landes",
+  "city": "Tarnos",
+  "beach": "La Digue"
+ },
+ {
+  "id": 1201,
+  "slug": "le-metro-tarnos",
+  "region": "landes",
+  "city": "Tarnos",
+  "beach": "Le Métro"
+ },
+ {
+  "id": 1090,
+  "slug": "vieux-boucau",
+  "region": "landes",
+  "city": "Vieux Boucau",
+  "beach": ""
+ },
+ {
+  "id": 1061,
+  "slug": "messanges",
+  "region": "landes",
+  "city": "Vieux Boucau",
+  "beach": "Messanges"
+ },
+ {
+  "id": 1081,
+  "slug": "soustons",
+  "region": "landes",
+  "city": "Vieux Boucau",
+  "beach": "Soustons"
+ },
+ {
+  "id": 1010,
+  "slug": "cap-ferret",
+  "region": "gironde",
+  "city": "Cap Ferret",
+  "beach": ""
+ },
+ {
+  "id": 1045,
+  "slug": "le-grand-crohot",
+  "region": "gironde",
+  "city": "Cap Ferret",
+  "beach": "Le Grand Crohot"
+ },
+ {
+  "id": 45,
+  "slug": "le-truc-vert",
+  "region": "gironde",
+  "city": "Cap Ferret",
+  "beach": "Le Truc Vert"
+ },
+ {
+  "id": 1013,
+  "slug": "carcans-plage",
+  "region": "gironde",
+  "city": "Carcans Plage",
+  "beach": ""
+ },
+ {
+  "id": 1046,
+  "slug": "le-gurp",
+  "region": "gironde",
+  "city": "Grayan Et L'hopital",
+  "beach": "Le Gurp"
+ },
+ {
+  "id": 1029,
+  "slug": "hourtin",
+  "region": "gironde",
+  "city": "Hourtin",
+  "beach": ""
+ },
+ {
+  "id": 1185,
+  "slug": "la-salie",
+  "region": "gironde",
+  "city": "La Teste De Buch",
+  "beach": "La Salie"
+ },
+ {
+  "id": 1043,
+  "slug": "lacanau",
+  "region": "gironde",
+  "city": "Lacanau",
+  "beach": ""
+ },
+ {
+  "id": 1049,
+  "slug": "le-porge",
+  "region": "gironde",
+  "city": "Le Porge",
+  "beach": ""
+ },
+ {
+  "id": 1184,
+  "slug": "la-jenny",
+  "region": "gironde",
+  "city": "Le Porge",
+  "beach": "La Jenny"
+ },
+ {
+  "id": 1052,
+  "slug": "le-verdon-mer",
+  "region": "gironde",
+  "city": "Le Verdon/mer",
+  "beach": ""
+ },
+ {
+  "id": 1064,
+  "slug": "montalivet",
+  "region": "gironde",
+  "city": "Montalivet",
+  "beach": ""
+ },
+ {
+  "id": 1183,
+  "slug": "le-pin-sec",
+  "region": "gironde",
+  "city": "Naujac/mer",
+  "beach": "Le Pin Sec"
+ },
+ {
+  "id": 1080,
+  "slug": "soulac",
+  "region": "gironde",
+  "city": "Soulac",
+  "beach": ""
+ }
+]

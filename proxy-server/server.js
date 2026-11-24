@@ -1,3 +1,12 @@
+// Proxy Surf&Tide pour l'app Garmin "Waves".
+//
+// Source : surf-report.com. Une page "prévisions" par spot contient, pour 7 jours :
+//   - les créneaux 06h..21h : vagues (min-max), houle (hauteur, période, direction), vent (vitesse, direction)
+//   - les marées : horaires pleine/basse mer et coefficients matin/après-midi
+// meteoconsult.fr n'est pas utilisé : le site bloque tout accès automatisé (protection Akamai, HTTP 403).
+//
+// La montre appelle GET /api/combined?spot=<id surf-report> et reçoit un JSON compact.
+
 const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -5,365 +14,209 @@ const NodeCache = require('node-cache');
 const cors = require('cors');
 require('dotenv').config();
 
+const SPOTS = require('./spots.json');
+
 const app = express();
-const cache = new NodeCache({ stdTTL: 1800 }); // 30 min cache
+const cache = new NodeCache({ stdTTL: 1800 }); // 30 min : les prévisions ne bougent pas plus vite
+const PORT = process.env.PORT || 3000;
+const BASE_URL = 'https://www.surf-report.com';
+const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 
 app.use(cors());
-app.use(express.json());
-
-const PORT = process.env.PORT || 3000;
 
 // ============================================================
-// CITY/BEACH CONFIGURATION
+// Spots
 // ============================================================
 
-const locations = {
-    'Biarritz': {
-        meteoconsult: 'https://www.meteoconsult.fr/marees/biarritz',
-        surfReport: 'https://www.surf-report.com/meteo-surf/biarritz/',
-        beaches: ['Grande Plage', 'Côte des Basques', 'Marbella']
-    },
-    'Hossegor': {
-        meteoconsult: 'https://www.meteoconsult.fr/marees/hossegor',
-        surfReport: 'https://www.surf-report.com/meteo-surf/hossegor/',
-        beaches: ['Plage Centrale', 'Plage d\'Hossegor', 'La Gravière']
-    },
-    'Biscarrosse': {
-        meteoconsult: 'https://www.meteoconsult.fr/marees/biscarrosse',
-        surfReport: 'https://www.surf-report.com/meteo-surf/biscarrosse/',
-        beaches: ['Plage Centrale', 'Plage Nord', 'Plage Sud']
+const spotsById = new Map(SPOTS.map(s => [s.id, s]));
+
+// Compatibilité avec l'ancienne version de la montre (?city=Biarritz&beach=Grande Plage)
+function findSpot({ spot, city, beach }) {
+    if (spot !== undefined) {
+        return spotsById.get(parseInt(spot, 10)) || null;
     }
-};
-
-// ============================================================
-// SCRAPING FUNCTIONS - meteoconsult.fr
-// ============================================================
-
-async function scrapeTideData(city) {
-    const location = locations[city] || locations['Biarritz'];
-    const url = location.meteoconsult;
-
-    try {
-        const response = await axios.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
-
-        const $ = cheerio.load(response.data);
-        const tideData = [];
-
-        // Parse tide table - structure varies by site
-        // This is adapted for meteoconsult.fr's typical structure
-        $('.tide-table-day, .maree-jour, [class*="tide"]').each((i, element) => {
-            const day = {
-                date: $(element).find('.date, [class*="date"]').text().trim(),
-                events: []
-            };
-
-            $(element).find('.tide-event, [class*="maree"], tr').each((j, event) => {
-                const type = $(event).find('.type, [class*="type"]').text().trim().toLowerCase();
-                const time = $(event).find('.time, [class*="heure"]').text().trim();
-                const height = $(event).find('.height, [class*="hauteur"]').text().trim();
-                const coeff = $(event).find('.coeff, [class*="coefficient"]').text().trim();
-
-                if (time) {
-                    const [hour, minute] = time.split('h').map(s => parseInt(s.trim()));
-                    const isHigh = type.includes('pm') || type.includes('haute') || type.includes('high');
-
-                    day.events.push({
-                        type: isHigh ? 'high' : 'low',
-                        hour: isNaN(hour) ? 0 : hour,
-                        minute: isNaN(minute) ? 0 : minute,
-                        height: parseFloat(height) || 0,
-                        coefficient: parseInt(coeff) || 0
-                    });
-                }
-            });
-
-            if (day.events.length > 0) {
-                tideData.push(day);
-            }
-        });
-
-        return tideData;
-    } catch (error) {
-        console.error('Error scraping tide data:', error.message);
-        return getMockTideData();
+    if (city) {
+        const norm = v => (v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const inCity = SPOTS.filter(s => norm(s.city) === norm(city));
+        return inCity.find(s => norm(s.beach) === norm(beach)) || inCity[0] || null;
     }
+    return null;
 }
 
 // ============================================================
-// SCRAPING FUNCTIONS - surf-report.com
+// Scraping surf-report.com
 // ============================================================
 
-async function scrapeSurfData(city) {
-    const location = locations[city] || locations['Biarritz'];
-    const url = location.surfReport;
+const DIR_WORDS = { nord: 'N', sud: 'S', est: 'E', ouest: 'W' };
 
-    try {
-        const response = await axios.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
+// "Orientation vent Sud Sud Ouest" -> "SSW"
+function parseDirection(alt) {
+    if (!alt) return '';
+    return alt
+        .toLowerCase()
+        .split(/\s+/)
+        .map(w => DIR_WORDS[w.normalize('NFD').replace(/[̀-ͯ]/g, '')] || '')
+        .join('');
+}
 
-        const $ = cheerio.load(response.data);
-        const surfData = [];
+function num(text) {
+    const v = parseFloat(String(text).replace(',', '.'));
+    return Number.isFinite(v) ? v : 0;
+}
 
-        // Parse surf forecast table
-        $('.surf-day, .forecast-day, [class*="surf"], .day-forecast').each((i, element) => {
-            const day = {
-                date: $(element).find('.date, [class*="date"], .day-header').text().trim(),
-                hours: []
-            };
+function addDays(isoDate, n) {
+    const d = new Date(isoDate + 'T12:00:00Z');
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+}
 
-            $(element).find('.hour-row, .hour-block, [class*="hour"], tr.hour').each((j, hourEl) => {
-                const hour = parseInt($(hourEl).find('.hour, [class*="heure"]').text().trim());
-                const waveHeight = parseFloat(
-                    $(hourEl).find('.wave-height, [class*="hauteur"], .wave').text().trim()
-                );
-                const swellDir = $(hourEl).find('.swell-dir, [class*="direction"], .dir').text().trim();
-                const swellPeriod = parseInt(
-                    $(hourEl).find('.swell-period, [class*="periode"], .period').text().trim()
-                );
-                const windDir = $(hourEl).find('.wind-dir, [class*="vent-dir"]').text().trim();
-                const windSpeed = parseInt(
-                    $(hourEl).find('.wind-speed, [class*="vent-force"], .wind').text().trim()
-                );
+function parseForecastPage(html) {
+    const $ = cheerio.load(html);
+    const days = [];
+    let baseDate = null;
 
-                if (!isNaN(hour)) {
-                    day.hours.push({
-                        hour,
-                        waveHeight: isNaN(waveHeight) ? 0 : waveHeight,
-                        swellDirection: swellDir || 'N',
-                        swellPeriod: isNaN(swellPeriod) ? 0 : swellPeriod,
-                        windDirection: windDir || 'N',
-                        windSpeed: isNaN(windSpeed) ? 0 : windSpeed,
-                        windGusts: 0
-                    });
-                }
-            });
+    $('.forecast-tab').each((index, tab) => {
+        const $tab = $(tab);
+        const scripts = $tab.find('script').map((i, s) => $(s).html()).get().join('\n');
 
-            if (day.hours.length > 0) {
-                surfData.push(day);
-            }
-        });
-
-        if (surfData.length === 0) {
-            console.log('No surf data parsed, using mock data');
-            return getMockSurfData();
+        // Le graphe de marée de CHAQUE onglet est daté du jour courant (bizarrerie du site) :
+        // seules les heures sont fiables. La vraie date = 1er jour + rang de l'onglet,
+        // vérifiée avec le numéro du jour dans le titre ("Mardi 24 Novembre").
+        const graphMatch = scripts.match(/x\.domain\(\[parseTime\("(\d{4}-\d{2}-\d{2})/);
+        const graphDate = graphMatch ? graphMatch[1] : null;
+        if (baseDate === null) baseDate = graphDate || new Date().toISOString().slice(0, 10);
+        let date = addDays(baseDate, index);
+        const titleDay = parseInt(($tab.find('.title').first().text().match(/\d+/) || [])[0], 10);
+        for (let k = 0; k < 3 && titleDay && parseInt(date.slice(8), 10) !== titleDay; k++) {
+            date = addDays(date, 1);
         }
 
-        return surfData;
-    } catch (error) {
-        console.error('Error scraping surf data:', error.message);
-        return getMockSurfData();
-    }
-}
+        // ---- Créneaux horaires
+        const hours = [];
+        $tab.find('.line').each((i, line) => {
+            const $line = $(line);
+            const time = $line.find('.cell.date').text().trim();
+            const m = time.match(/^(\d{1,2}):(\d{2})$/);
+            if (!m) return; // ligne d'en-tête ou de marées
 
-// ============================================================
-// MOCK DATA (fallback when scraping fails)
-// ============================================================
+            const waves = $line.find('.cell.waves span').not('.m-unit').map((j, s) => num($(s).text())).get();
+            const waveMin = waves[0] || 0;
+            const waveMax = waves.length > 1 ? waves[1] : waveMin;
 
-function getMockTideData() {
-    const today = new Date();
-    const days = [];
+            const swell = $line.find('.swell').not('.secondary').not('.img');
+            const swellImg = $line.find('.swell.img').not('.secondary').find('img').attr('alt');
+            const windSpeed = num($line.find('.wind').not('.img').find('span').first().text());
+            const windImg = $line.find('.wind.img img').attr('alt');
 
-    for (let d = 0; d < 7; d++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() + d);
-        const dateStr = date.toISOString().split('T')[0];
-        const dayOfWeek = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+            hours.push({
+                hour: parseInt(m[1], 10),
+                waveMin,
+                waveMax,
+                waveHeight: Math.round((waveMin + waveMax) * 5) / 10, // moyenne de la fourchette
+                swellHeight: num(swell.eq(0).find('span').first().text()),
+                swellPeriod: Math.round(num(swell.eq(1).find('span').first().text())),
+                swellDirection: parseDirection(swellImg),
+                windSpeed: Math.round(windSpeed),
+                windGusts: 0, // non fourni par créneau sur surf-report
+                windDirection: parseDirection(windImg)
+            });
+        });
 
-        // Simulate semi-diurnal tide (2 high, 2 low per day)
-        const baseCoeff = 50 + Math.floor(Math.random() * 60);
-        const events = [
-            {
-                type: 'low',
-                hour: 6 + Math.floor(Math.random() * 2),
-                minute: Math.floor(Math.random() * 60),
-                height: 0.3 + Math.random() * 0.8,
-                coefficient: baseCoeff
-            },
-            {
-                type: 'high',
-                hour: 12 + Math.floor(Math.random() * 2),
-                minute: Math.floor(Math.random() * 60),
-                height: 3.0 + Math.random() * 2.0,
-                coefficient: baseCoeff + 10
-            },
-            {
-                type: 'low',
-                hour: 18 + Math.floor(Math.random() * 2),
-                minute: Math.floor(Math.random() * 60),
-                height: 0.4 + Math.random() * 0.7,
-                coefficient: baseCoeff + 5
-            },
-            {
-                type: 'high',
-                hour: 0 + Math.floor(Math.random() * 2),
-                minute: Math.floor(Math.random() * 60),
-                height: 3.2 + Math.random() * 1.8,
-                coefficient: baseCoeff + 15
+        // ---- Marées : horaires exacts dans le JSON du graphe, coefficients dans le texte
+        const coeffs = $tab.find('.tide-element.coeff').text().match(/\d+/g) || [];
+        const morningCoeff = parseInt(coeffs[0], 10) || 0;
+        const afternoonCoeff = parseInt(coeffs[1], 10) || morningCoeff;
+
+        const events = [];
+        const tidesMatch = scripts.match(/dataTidesWithout\s*=\s*(\[[^\]]*\])/);
+        if (tidesMatch) {
+            try {
+                for (const t of JSON.parse(tidesMatch[1])) {
+                    const tm = String(t.hour).match(/^(\d{4}-\d{2}-\d{2}) (\d{2}):(\d{2})/);
+                    if (!tm || (graphDate && tm[1] !== graphDate)) continue; // marée de la veille
+                    const hour = parseInt(tm[2], 10);
+                    events.push({
+                        // sur surf-report, 5 = pleine mer, 1 = basse mer
+                        type: parseInt(t.tide, 10) >= 3 ? 'high' : 'low',
+                        hour,
+                        minute: parseInt(tm[3], 10),
+                        height: 0, // hauteur d'eau non fournie
+                        coefficient: hour < 12 ? morningCoeff : afternoonCoeff
+                    });
+                }
+            } catch (e) {
+                console.error('Tide JSON parse error:', e.message);
             }
-        ];
-
-        // Sort by hour
+        }
         events.sort((a, b) => (a.hour * 60 + a.minute) - (b.hour * 60 + b.minute));
 
         days.push({
-            date: dateStr,
-            dayOfWeek,
-            morningCoeff: baseCoeff,
-            afternoonCoeff: baseCoeff + 10,
-            events
+            date,
+            tide: { morningCoeff, afternoonCoeff, events },
+            surf: { hours }
         });
-    }
+    });
 
     return days;
 }
 
-function getMockSurfData() {
-    const today = new Date();
-    const days = [];
-    const swellDirs = ['NW', 'WNW', 'W', 'WSW', 'SW', 'SSW'];
-    const windDirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-
-    for (let d = 0; d < 7; d++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() + d);
-        const dateStr = date.toISOString().split('T')[0];
-        const hours = [];
-
-        const baseWaveHeight = 0.5 + Math.random() * 2.0;
-
-        for (let h = 6; h <= 22; h += 3) {
-            const swellDir = swellDirs[Math.floor(Math.random() * swellDirs.length)];
-            const windDir = windDirs[Math.floor(Math.random() * windDirs.length)];
-
-            hours.push({
-                hour: h,
-                waveHeight: parseFloat((baseWaveHeight + (Math.random() - 0.5) * 0.8).toFixed(1)),
-                swellDirection: swellDir,
-                swellPeriod: Math.floor(8 + Math.random() * 8),
-                windDirection: windDir,
-                windSpeed: Math.floor(Math.random() * 35),
-                windGusts: Math.floor(Math.random() * 45)
-            });
-        }
-
-        days.push({
-            date: dateStr,
-            hours
-        });
+async function fetchSpot(spot) {
+    const url = `${BASE_URL}/meteo-surf/${spot.slug}-s${spot.id}.html`;
+    const response = await axios.get(url, {
+        headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'fr-FR,fr;q=0.9' },
+        timeout: 20000
+    });
+    const days = parseForecastPage(response.data);
+    if (days.length === 0 || days.every(d => d.surf.hours.length === 0)) {
+        throw new Error('Page parsed but no forecast found (site layout changed?)');
     }
-
     return days;
-}
-
-function combineData(tideData, surfData) {
-    const combined = [];
-
-    for (let i = 0; i < Math.max(tideData.length, surfData.length); i++) {
-        const tide = tideData[i] || { date: '', events: [], morningCoeff: 0, afternoonCoeff: 0 };
-        const surf = surfData[i] || { date: '', hours: [] };
-
-        combined.push({
-            date: tide.date || surf.date,
-            tide: {
-                morningCoeff: tide.morningCoeff || 0,
-                afternoonCoeff: tide.afternoonCoeff || 0,
-                events: tide.events || []
-            },
-            surf: {
-                hours: surf.hours || []
-            }
-        });
-    }
-
-    return combined;
 }
 
 // ============================================================
-// API ENDPOINTS
+// API
 // ============================================================
 
 app.get('/api/combined', async (req, res) => {
-    const { city, beach } = req.query;
-    const cacheKey = `combined_${city}_${beach}`;
-    const cached = cache.get(cacheKey);
+    const spot = findSpot(req.query);
+    if (!spot) {
+        return res.status(400).json({ error: 'unknown spot' });
+    }
 
+    const cacheKey = `spot_${spot.id}`;
+    const cached = cache.get(cacheKey);
     if (cached) {
-        return res.json({ days: cached });
+        return res.json(cached);
     }
 
     try {
-        const [tideData, surfData] = await Promise.all([
-            scrapeTideData(city),
-            scrapeSurfData(city)
-        ]);
-
-        const combined = combineData(tideData, surfData);
-        cache.set(cacheKey, combined);
-
-        res.json({ days: combined });
+        const payload = {
+            spot: { id: spot.id, city: spot.city, beach: spot.beach },
+            source: 'surf-report.com',
+            mock: false,
+            days: await fetchSpot(spot)
+        };
+        cache.set(cacheKey, payload);
+        res.json(payload);
     } catch (error) {
-        console.error('Combined API error:', error);
-        // Fall back to mock data
-        const tideData = getMockTideData();
-        const surfData = getMockSurfData();
-        const combined = combineData(tideData, surfData);
-
-        res.json({ days: combined });
+        console.error(`Scraping error for spot ${spot.id}:`, error.message);
+        // Pas de fausses données : la montre affiche l'erreur et garde son cache
+        res.status(502).json({ error: 'upstream unavailable' });
     }
 });
 
-app.get('/api/tide', async (req, res) => {
-    const { city } = req.query;
-    const cacheKey = `tide_${city}`;
-    const cached = cache.get(cacheKey);
-
-    if (cached) {
-        return res.json({ days: cached });
-    }
-
-    const data = await scrapeTideData(city);
-    cache.set(cacheKey, data);
-    res.json({ days: data });
-});
-
-app.get('/api/surf', async (req, res) => {
-    const { city } = req.query;
-    const cacheKey = `surf_${city}`;
-    const cached = cache.get(cacheKey);
-
-    if (cached) {
-        return res.json({ days: cached });
-    }
-
-    const data = await scrapeSurfData(city);
-    cache.set(cacheKey, data);
-    res.json({ days: data });
-});
-
-app.get('/api/cities', (req, res) => {
-    const cityList = Object.keys(locations).map(name => ({
-        name,
-        beaches: locations[name].beaches
-    }));
-    res.json({ cities: cityList });
+app.get('/api/spots', (req, res) => {
+    res.json({ spots: SPOTS.map(({ id, city, beach, region }) => ({ id, city, beach, region })) });
 });
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-// ============================================================
-// START SERVER
-// ============================================================
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Surf&Tide proxy running on port ${PORT} (${SPOTS.length} spots)`);
+    });
+}
 
-app.listen(PORT, () => {
-    console.log(`Surf&Tide Proxy Server running on port ${PORT}`);
-    console.log(`Cities configured: ${Object.keys(locations).join(', ')}`);
-});
+module.exports = { parseForecastPage, parseDirection };

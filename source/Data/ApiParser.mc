@@ -1,90 +1,125 @@
 using Toybox.Lang;
-using Toybox.Time;
-using Toybox.Time.Gregorian;
+using Toybox.Math;
 
+// Transforme la réponse JSON du proxy (/api/combined) en Array<DayData>.
+// Tolérant aux champs manquants : un champ absent ne fait plus planter l'app.
 class ApiParser {
 
     function initialize() {}
 
-    function parseCombinedResponse(json) {
+    function parse(json) {
         var results = [];
-
+        if (!(json instanceof Lang.Dictionary)) { return results; }
         var days = json["days"];
-        if (days == null) {
-            return results;
-        }
+        if (!(days instanceof Lang.Array)) { return results; }
 
         for (var i = 0; i < days.size(); i++) {
-            var dayData = days[i];
-            var dateStr = dayData["date"];
-            var dateInfo = parseDate(dateStr);
-            var dayOfWeek = getDayOfWeek(dateInfo);
-
-            var aggregate = new DailyAggregate(dateInfo, dayOfWeek);
-
-            var tideSection = dayData["tide"];
-            if (tideSection != null) {
-                var dayTide = new DayTideData(dateInfo, dayOfWeek);
-                var tideEvents = tideSection["events"];
-                if (tideEvents != null) {
-                    for (var t = 0; t < tideEvents.size(); t++) {
-                        var ev = tideEvents[t];
-                        var type = (ev["type"].equals("high")) ? 1 : 0;
-                        var hour = ev["hour"].toNumber();
-                        var minute = ev["minute"].toNumber();
-                        var height = ev["height"].toFloat();
-                        var coeff = ev["coefficient"].toNumber();
-                        dayTide.addEvent(new TideEvent(type, hour, minute, height, coeff));
-                    }
-                }
-                dayTide.morningCoeff = tideSection["morningCoeff"].toNumber();
-                dayTide.afternoonCoeff = tideSection["afternoonCoeff"].toNumber();
-                aggregate.tide = dayTide;
-            }
-
-            var surfSection = dayData["surf"];
-            if (surfSection != null) {
-                var daySurf = new DaySurfData(dateInfo);
-                var hours = surfSection["hours"];
-                if (hours != null) {
-                    for (var h = 0; h < hours.size(); h++) {
-                        var hr = hours[h];
-                        var surfHour = new SurfHourData();
-                        surfHour.hour = hr["hour"].toNumber();
-                        surfHour.waveHeight = hr["waveHeight"].toFloat();
-                        surfHour.swellDirection = hr["swellDirection"];
-                        surfHour.swellPeriod = hr["swellPeriod"].toNumber();
-                        surfHour.windDirection = hr["windDirection"];
-                        surfHour.windSpeed = hr["windSpeed"].toNumber();
-                        surfHour.windGusts = hr["windGusts"].toNumber();
-                        daySurf.addHourData(surfHour);
-                    }
-                }
-                aggregate.surf = daySurf;
-            }
-
-            results.add(aggregate);
+            var day = parseDay(days[i]);
+            if (day != null) { results.add(day); }
         }
-
         return results;
     }
 
-    function parseDate(dateStr) {
-        var parts = dateStr.split("-");
-        return {
-            "year" => parts[0].toNumber(),
-            "month" => parts[1].toNumber(),
-            "day" => parts[2].toNumber()
-        };
+    private function parseDay(d) {
+        if (!(d instanceof Lang.Dictionary)) { return null; }
+        var date = parseDate(d["date"]);
+        if (date == null) { return null; }
+
+        var day = new DayData();
+        day.setDate(date[0], date[1], date[2]);
+
+        var tide = d["tide"];
+        if (tide instanceof Lang.Dictionary) {
+            day.morningCoeff = num(tide["morningCoeff"], 0);
+            day.afternoonCoeff = num(tide["afternoonCoeff"], 0);
+            var events = tide["events"];
+            if (events instanceof Lang.Array) {
+                for (var i = 0; i < events.size(); i++) {
+                    var ev = events[i];
+                    if (!(ev instanceof Lang.Dictionary)) { continue; }
+                    var type = ("high".equals(ev["type"])) ? 1 : 0;
+                    day.addTide(new TideEvent(type,
+                        num(ev["hour"], 0), num(ev["minute"], 0),
+                        flt(ev["height"], 0.0f), num(ev["coefficient"], 0)));
+                }
+            }
+            sortTides(day.tides);
+        }
+
+        var surf = d["surf"];
+        if (surf instanceof Lang.Dictionary) {
+            var hours = surf["hours"];
+            if (hours instanceof Lang.Array) {
+                for (var i = 0; i < hours.size(); i++) {
+                    var hr = hours[i];
+                    if (!(hr instanceof Lang.Dictionary)) { continue; }
+                    var s = new SurfHourData();
+                    s.hour = num(hr["hour"], 0);
+                    s.waveHeight = flt(hr["waveHeight"], 0.0f);
+                    s.waveMin = flt(hr["waveMin"], s.waveHeight);
+                    s.waveMax = flt(hr["waveMax"], s.waveHeight);
+                    s.swellHeight = flt(hr["swellHeight"], 0.0f);
+                    s.swellDirection = str(hr["swellDirection"]);
+                    s.swellPeriod = num(hr["swellPeriod"], 0);
+                    s.windDirection = str(hr["windDirection"]);
+                    s.windSpeed = num(hr["windSpeed"], 0);
+                    s.windGusts = num(hr["windGusts"], 0);
+                    day.hours.add(s);
+                }
+            }
+        }
+        return day;
     }
 
-    function getDayOfWeek(dateInfo) {
-        var moment = Gregorian.moment(
-            dateInfo["year"],
-            dateInfo["month"],
-            dateInfo["day"]
-        );
-        var info = Gregorian.info(moment, Time.FORMAT_MEDIUM);
-        return info.day_of_week;
+    // "2026-07-09" -> [2026, 7, 9]
+    private function parseDate(s) {
+        if (!(s instanceof Lang.String) || s.length() < 10) { return null; }
+        var y = s.substring(0, 4).toNumber();
+        var m = s.substring(5, 7).toNumber();
+        var d = s.substring(8, 10).toNumber();
+        if (y == null || m == null || d == null) { return null; }
+        return [y, m, d];
+    }
+
+    private function sortTides(list) {
+        // tri par insertion (4 éléments max)
+        for (var i = 1; i < list.size(); i++) {
+            var cur = list[i];
+            var j = i - 1;
+            while (j >= 0 && list[j].time > cur.time) {
+                list[j + 1] = list[j];
+                j--;
+            }
+            list[j + 1] = cur;
+        }
+    }
+
+    private function num(v, def) {
+        if (v == null) { return def; }
+        if (v instanceof Lang.Number) { return v; }
+        if (v instanceof Lang.Float || v instanceof Lang.Double || v instanceof Lang.Long) {
+            return Math.round(v).toNumber();
+        }
+        if (v instanceof Lang.String) {
+            var n = v.toNumber();
+            return n == null ? def : n;
+        }
+        return def;
+    }
+
+    private function flt(v, def) {
+        if (v == null) { return def; }
+        if (v instanceof Lang.Number || v instanceof Lang.Float || v instanceof Lang.Double || v instanceof Lang.Long) {
+            return v.toFloat();
+        }
+        if (v instanceof Lang.String) {
+            var f = v.toFloat();
+            return f == null ? def : f;
+        }
+        return def;
+    }
+
+    private function str(v) {
+        return (v instanceof Lang.String) ? v : "";
     }
 }

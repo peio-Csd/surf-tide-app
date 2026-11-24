@@ -1,18 +1,14 @@
 using Toybox.Lang;
-using Toybox.Time;
+using Toybox.Math;
 
-enum WindStrength {
-    WIND_LIGHT = 0,
-    WIND_MODERATE = 1,
-    WIND_STRONG = 2
-}
-
+// Une pleine mer (type = 1) ou basse mer (type = 0)
 class TideEvent {
-    var type;
+    var type;         // 1 = pleine mer (PM), 0 = basse mer (BM)
     var hour;
     var minute;
-    var height;
+    var height;       // mètres (Float)
     var coefficient;
+    var time;         // instant en secondes epoch (heure locale de la montre)
 
     function initialize(type_, hour_, minute_, height_, coeff_) {
         type = type_;
@@ -20,153 +16,211 @@ class TideEvent {
         minute = minute_;
         height = height_;
         coefficient = coeff_;
+        time = 0;
+    }
+
+    function isHigh() {
+        return type == 1;
     }
 
     function getLabel() {
-        if (type == 0) {
-            return "BM";
-        }
-        return "PM";
+        return isHigh() ? "PM" : "BM";
     }
 
     function getTimeString() {
-        return Lang.format("$1$:$2$", [hour.format("%02d"), minute.format("%02d")]);
+        return Fmt.hm(hour, minute);
+    }
+
+    function toArray() {
+        return [type, hour, minute, height, coefficient];
+    }
+
+    static function fromArray(a) {
+        return new TideEvent(a[0], a[1], a[2], a[3], a[4]);
     }
 }
 
-class DayTideData {
-    var date;
-    var dayOfWeek;
-    var events;
-    var morningCoeff;
-    var afternoonCoeff;
-
-    function initialize(date_, dayOfWeek_) {
-        date = date_;
-        dayOfWeek = dayOfWeek_;
-        events = [];
-        morningCoeff = 0;
-        afternoonCoeff = 0;
-    }
-
-    function addEvent(event) {
-        events.add(event);
-    }
-}
-
+// Un créneau horaire surf-report (vagues, houle, vent)
 class SurfHourData {
     var hour;
-    var waveHeight;
-    var swellDirection;
-    var swellPeriod;
+    var waveHeight;      // m (Float) : milieu de la fourchette
+    var waveMin;         // m
+    var waveMax;         // m
+    var swellHeight;     // m
+    var swellDirection;  // "WNW", "SO", ...
+    var swellPeriod;     // s
     var windDirection;
-    var windSpeed;
-    var windGusts;
+    var windSpeed;       // km/h
+    var windGusts;       // km/h
 
     function initialize() {
         hour = 0;
         waveHeight = 0.0f;
-        swellDirection = "N";
+        waveMin = 0.0f;
+        waveMax = 0.0f;
+        swellHeight = 0.0f;
+        swellDirection = "";
         swellPeriod = 0;
-        windDirection = "N";
+        windDirection = "";
         windSpeed = 0;
         windGusts = 0;
     }
-}
 
-class DaySurfData {
-    var date;
-    var hourlyData;
-    var averageWaveHeight;
-
-    function initialize(date_) {
-        date = date_;
-        hourlyData = [];
-        averageWaveHeight = 0.0f;
+    function toArray() {
+        return [hour, waveHeight, swellDirection, swellPeriod, windDirection, windSpeed, windGusts, waveMin, waveMax, swellHeight];
     }
 
-    function addHourData(data) {
-        hourlyData.add(data);
-        recalcAverage();
-    }
-
-    function recalcAverage() {
-        var total = 0.0f;
-        var count = 0;
-        for (var i = 0; i < hourlyData.size(); i++) {
-            var d = hourlyData[i];
-            if (d.waveHeight > 0.0f) {
-                total += d.waveHeight;
-                count++;
-            }
-        }
-        if (count > 0) {
-            averageWaveHeight = total / count;
-        }
+    static function fromArray(a) {
+        var h = new SurfHourData();
+        h.hour = a[0];
+        h.waveHeight = a[1];
+        h.swellDirection = a[2];
+        h.swellPeriod = a[3];
+        h.windDirection = a[4];
+        h.windSpeed = a[5];
+        h.windGusts = a[6];
+        h.waveMin = a[7];
+        h.waveMax = a[8];
+        h.swellHeight = a[9];
+        return h;
     }
 }
 
-class DailyAggregate {
-    var date;
-    var dayLabel;
-    var tide;
-    var surf;
-
-    function initialize(date_, dayLabel_) {
-        date = date_;
-        dayLabel = dayLabel_;
-    }
-
-    function getNextTideEvent(currentTime) {
-        if (tide == null) {
-            return null;
-        }
-        var next = null;
-        for (var i = 0; i < tide.events.size(); i++) {
-            var event = tide.events[i];
-            var eventMinutes = event.hour * 60 + event.minute;
-            var nowMinutes = currentTime.hour * 60 + currentTime.min;
-            if (eventMinutes > nowMinutes) {
-                if (next == null || eventMinutes < (next.hour * 60 + next.minute)) {
-                    next = event;
-                }
-            }
-        }
-        return next;
-    }
-
-    function getWindStrengthLabel(speed) {
-        if (speed >= 25) {
-            return WIND_STRONG;
-        } else if (speed >= 10) {
-            return WIND_MODERATE;
-        }
-        return WIND_LIGHT;
-    }
-}
-
-class GeoLocation {
-    var lat;
-    var lon;
-    var name;
-
-    function initialize(lat_, lon_, name_) {
-        lat = lat_;
-        lon = lon_;
-        name = name_;
-    }
-}
-
-class AppSettings {
-    var selectedCity;
-    var selectedBeach;
-    var refreshIntervalMinutes;
-    var unitsMetric;
+// Toutes les données d'une journée
+class DayData {
+    var year;
+    var month;
+    var day;
+    var dayOfWeek;      // 1 = dimanche ... 7 = samedi (convention Garmin)
+    var midnight;       // minuit local, secondes epoch
+    var morningCoeff;
+    var afternoonCoeff;
+    var tides;          // Array<TideEvent>, triées par heure
+    var hours;          // Array<SurfHourData>, triées par heure
 
     function initialize() {
-        selectedCity = "Biarritz";
-        selectedBeach = "Grande Plage";
-        refreshIntervalMinutes = 60;
-        unitsMetric = true;
+        year = 0;
+        month = 0;
+        day = 0;
+        dayOfWeek = 1;
+        midnight = 0;
+        morningCoeff = 0;
+        afternoonCoeff = 0;
+        tides = [];
+        hours = [];
+    }
+
+    function hasTides() {
+        return tides.size() > 0;
+    }
+
+    // surf-report ne fournit pas la hauteur d'eau des marées (uniquement horaires + coefficients)
+    function hasTideHeights() {
+        for (var i = 0; i < tides.size(); i++) {
+            if (tides[i].height > 0) { return true; }
+        }
+        return false;
+    }
+
+    function hasSurf() {
+        return hours.size() > 0;
+    }
+
+    function avgWave() {
+        var total = 0.0f;
+        var n = 0;
+        for (var i = 0; i < hours.size(); i++) {
+            if (hours[i].waveHeight > 0) {
+                total += hours[i].waveHeight;
+                n++;
+            }
+        }
+        return n > 0 ? total / n : 0.0f;
+    }
+
+    function minWave() {
+        var m = null;
+        for (var i = 0; i < hours.size(); i++) {
+            var w = hours[i].waveMin > 0 ? hours[i].waveMin : hours[i].waveHeight;
+            if (w > 0 && (m == null || w < m)) { m = w; }
+        }
+        return m == null ? 0.0f : m;
+    }
+
+    function maxWave() {
+        var m = 0.0f;
+        for (var i = 0; i < hours.size(); i++) {
+            var w = hours[i].waveMax > 0 ? hours[i].waveMax : hours[i].waveHeight;
+            if (w > m) { m = w; }
+        }
+        return m;
+    }
+
+    function avgWind() {
+        if (hours.size() == 0) { return 0; }
+        var total = 0;
+        for (var i = 0; i < hours.size(); i++) {
+            total += hours[i].windSpeed;
+        }
+        return Math.round(total.toFloat() / hours.size()).toNumber();
+    }
+
+    // Direction la plus fréquente sur la journée
+    function mainWindDirection() {
+        var best = "";
+        var bestCount = 0;
+        for (var i = 0; i < hours.size(); i++) {
+            var d = hours[i].windDirection;
+            var c = 0;
+            for (var j = 0; j < hours.size(); j++) {
+                if (hours[j].windDirection.equals(d)) { c++; }
+            }
+            if (c > bestCount) {
+                best = d;
+                bestCount = c;
+            }
+        }
+        return best;
+    }
+
+    // Créneau correspondant à l'heure donnée (le dernier créneau commencé)
+    function slotIndexAt(hourOfDay) {
+        if (hours.size() == 0) { return -1; }
+        var idx = 0;
+        for (var i = 0; i < hours.size(); i++) {
+            if (hours[i].hour <= hourOfDay) { idx = i; }
+        }
+        return idx;
+    }
+
+    function toArray() {
+        var t = [];
+        for (var i = 0; i < tides.size(); i++) { t.add(tides[i].toArray()); }
+        var h = [];
+        for (var i = 0; i < hours.size(); i++) { h.add(hours[i].toArray()); }
+        return [year, month, day, morningCoeff, afternoonCoeff, t, h];
+    }
+
+    static function fromArray(a) {
+        var d = new DayData();
+        d.setDate(a[0], a[1], a[2]);
+        d.morningCoeff = a[3];
+        d.afternoonCoeff = a[4];
+        for (var i = 0; i < a[5].size(); i++) { d.addTide(TideEvent.fromArray(a[5][i])); }
+        for (var i = 0; i < a[6].size(); i++) { d.hours.add(SurfHourData.fromArray(a[6][i])); }
+        return d;
+    }
+
+    function setDate(y, m, dd) {
+        year = y;
+        month = m;
+        day = dd;
+        midnight = Fmt.localMidnight(y, m, dd);
+        dayOfWeek = Fmt.dayOfWeek(midnight);
+    }
+
+    function addTide(ev) {
+        ev.time = midnight + ev.hour * 3600 + ev.minute * 60;
+        tides.add(ev);
     }
 }

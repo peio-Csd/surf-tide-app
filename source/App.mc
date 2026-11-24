@@ -1,49 +1,31 @@
 using Toybox.Application;
 using Toybox.WatchUi;
-using Toybox.System;
-using Toybox.Lang;
-using Toybox.Communications;
 
+(:glance)
 class SurfTideApp extends Application.AppBase {
 
-    var dataManager;
+    // Créé uniquement pour l'app complète (pas pour le glance, qui a peu de mémoire)
+    var dataManager = null;
 
     function initialize() {
         AppBase.initialize();
-        dataManager = new DataManager();
-    }
-
-    function onStart(state) {
-        dataManager.loadSettings();
-    }
-
-    function onStop(state) {
-        dataManager.saveSettings();
     }
 
     function getInitialView() {
-        var mainView = new MainView();
-        var delegate = new MainViewDelegate();
-        return [mainView, delegate];
-    }
-
-    function getGoalViews() {
-        var mainView = new MainView();
-        var delegate = new MainViewDelegate();
-        return [mainView, delegate];
+        dataManager = new DataManager();
+        var view = new MainView();
+        return [view, new MainDelegate(view)];
     }
 
     function getGlanceView() {
-        var mainView = new MainView();
-        var delegate = new MainViewDelegate();
-        return [mainView, delegate];
+        return [new SurfGlanceView()];
     }
 
-    function getDataField() {
-        return new SurfTideDataField();
+    // Réglages modifiés depuis Garmin Connect (téléphone)
+    function onSettingsChanged() {
+        if (dataManager != null) {
+            dataManager.setSpot(Spots.currentId());
+        }
+        WatchUi.requestUpdate();
     }
-}
-
-function getApp() {
-    return Application.getApp();
 }
