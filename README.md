@@ -1,6 +1,6 @@
 # Waves — app Garmin surf & marées
 
-App Connect IQ (Monkey C) qui affiche, pour un spot de la côte basque/landaise/girondine :
+App Connect IQ (Monkey C) qui affiche, pour un spot de la côte basque/landaise/girondine, de Vendée et de Bretagne :
 vagues, houle, vent par créneau et marées (pleine/basse mer + coefficients) sur 7 jours.
 Rendu de référence : Forerunner 165 Music (390×390 AMOLED), fonctionne sur les montres rondes récentes.
 
@@ -13,7 +13,8 @@ Rendu de référence : Forerunner 165 Music (390×390 AMOLED), fonctionne sur le
 | `proxy-server/` | serveur Node (Render) qui lit surf-report.com et renvoie un JSON compact |
 | `proxy-server/spots.json` | **liste des spots** (source unique) |
 
-Les données viennent de **surf-report.com** (prévisions + marées). meteoconsult.fr bloque
+Les données viennent de **surf-report.com** (prévisions + marées ; si la page prévisions d'un spot
+n'a pas les marées, le serveur les lit sur sa page `horaires-marees`). meteoconsult.fr bloque
 tout accès automatisé (HTTP 403 Akamai), il n'est donc pas utilisé.
 
 ## Ajouter / retirer un spot

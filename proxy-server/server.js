@@ -160,6 +160,70 @@ function parseForecastPage(html) {
     return days;
 }
 
+// ------------------------------------------------------------
+// Repli : page "horaires-marees" (certains spots, ex. La Guérite, n'ont pas
+// les marées sur leur page prévisions). Calendrier mensuel, 2 lignes par jour :
+// "Matin" / "Après midi" avec Pleine mer, Basse mer, Coeff.
+// ------------------------------------------------------------
+
+const MONTHS = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet',
+    'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
+const stripAccents = v => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+function parseTidePage(html) {
+    const $ = cheerio.load(html);
+    const byDayMonth = new Map(); // "24-11" -> { morningCoeff, afternoonCoeff, events }
+
+    $('.tides-tab').each((i, tab) => {
+        const title = stripAccents($(tab).find('.title').first().text().toLowerCase());
+        const tm = title.match(/(\d{1,2})\s+([a-z]+)/);
+        if (!tm) return;
+        const month = MONTHS.indexOf(tm[2]) + 1;
+        if (month === 0) return;
+
+        const coeffs = [];
+        const events = [];
+        $(tab).find('.line.tides').each((j, line) => {
+            let coeff = 0;
+            const found = [];
+            $(line).find('.cell').each((k, cell) => {
+                const text = stripAccents($(cell).text().toLowerCase());
+                const m = text.match(/(pleine|basse) mer:\s*(\d{1,2}):(\d{2})/);
+                const c = text.match(/coeff:\s*(\d+)/);
+                if (m) found.push({ type: m[1] === 'pleine' ? 'high' : 'low', hour: +m[2], minute: +m[3] });
+                if (c) coeff = +c[1];
+            });
+            coeffs.push(coeff);
+            for (const e of found) events.push({ ...e, height: 0, coefficient: coeff });
+        });
+        events.sort((a, b) => (a.hour * 60 + a.minute) - (b.hour * 60 + b.minute));
+        byDayMonth.set(`${+tm[1]}-${month}`, {
+            morningCoeff: coeffs[0] || 0,
+            afternoonCoeff: coeffs[1] || coeffs[0] || 0,
+            events
+        });
+    });
+    return byDayMonth;
+}
+
+async function fillMissingTides(spot, days) {
+    if (days.some(d => d.tide.events.length > 0)) return;
+    const url = `${BASE_URL}/horaires-marees/${spot.slug}.html`;
+    try {
+        const response = await axios.get(url, {
+            headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'fr-FR,fr;q=0.9' },
+            timeout: 20000
+        });
+        const tides = parseTidePage(response.data);
+        for (const day of days) {
+            const t = tides.get(`${+day.date.slice(8, 10)}-${+day.date.slice(5, 7)}`);
+            if (t) day.tide = t;
+        }
+    } catch (e) {
+        console.error(`Tide fallback failed for spot ${spot.id}:`, e.message);
+    }
+}
+
 async function fetchSpot(spot) {
     const url = `${BASE_URL}/meteo-surf/${spot.slug}-s${spot.id}.html`;
     const response = await axios.get(url, {
@@ -170,6 +234,7 @@ async function fetchSpot(spot) {
     if (days.length === 0 || days.every(d => d.surf.hours.length === 0)) {
         throw new Error('Page parsed but no forecast found (site layout changed?)');
     }
+    await fillMissingTides(spot, days);
     return days;
 }
 
@@ -219,4 +284,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { parseForecastPage, parseDirection };
+module.exports = { parseForecastPage, parseTidePage, parseDirection };

@@ -110,7 +110,10 @@ class MainView extends WatchUi.View {
     }
 
     private function drawTitle(dc, title) {
-        Ui.text(dc, _cx, py(0.13), Graphics.FONT_XTINY, title, Ui.ACCENT, Graphics.TEXT_JUSTIFY_CENTER);
+        var y = py(0.13);
+        var maxW = Ui.halfChord(_w, _h, y, px(0.02)) * 2;
+        Ui.text(dc, _cx, y, Graphics.FONT_XTINY, Ui.fit(dc, title, Graphics.FONT_XTINY, maxW),
+            Ui.ACCENT, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     private function hLine(dc, y) {
@@ -135,7 +138,19 @@ class MainView extends WatchUi.View {
 
     // ----- Page 0 : aujourd'hui ----------------------------------------
     private function drawToday(dc, data, today) {
-        drawTitle(dc, data.spotLabel().toUpper() + " · " + Fmt.dayShort(today.dayOfWeek) + " " + today.day);
+        // Nom du spot + date ; si le nom est long, on retire la date plutôt que de couper le nom
+        var title = data.spotLabel().toUpper() + " · " + Fmt.dayShort(today.dayOfWeek) + " " + today.day;
+        var maxTitle = Ui.halfChord(_w, _h, py(0.13), px(0.02)) * 2;
+        if (dc.getTextWidthInPixels(title, Graphics.FONT_XTINY) > maxTitle) {
+            title = data.spotLabel().toUpper();
+            // Ville trop longue (ex. Locmaria Plouzane) : le nom de la plage est plus parlant
+            var beach = Spots.beach(data.spotId).toUpper();
+            if (dc.getTextWidthInPixels(title, Graphics.FONT_XTINY) > maxTitle && beach.length() > 0
+                && dc.getTextWidthInPixels(beach, Graphics.FONT_XTINY) <= maxTitle) {
+                title = beach;
+            }
+        }
+        drawTitle(dc, title);
 
         // Vague moyenne, en grand
         var avg = today.avgWave();

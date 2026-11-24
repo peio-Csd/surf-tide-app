@@ -50,7 +50,9 @@ class SurfGlanceView extends WatchUi.GlanceView {
         }
         var x = 0;
         dc.setColor(0xFFFFFF, Graphics.COLOR_TRANSPARENT);
-        var title = data["spot"].toUpper() + "  ";
+        var title = data["spot"].toUpper();
+        if (title.length() > 12) { title = title.substring(0, 11) + "…"; }
+        title += "  ";
         dc.drawText(x, y1, font, title, just);
         x += dc.getTextWidthInPixels(title, font);
         dc.setColor(0x55FF55, Graphics.COLOR_TRANSPARENT);

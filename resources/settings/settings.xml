@@ -82,6 +82,28 @@
                 <listEntry value="1064">@Strings.Spot1064</listEntry>
                 <listEntry value="1183">@Strings.Spot1183</listEntry>
                 <listEntry value="1080">@Strings.Spot1080</listEntry>
+                <listEntry value="1039">@Strings.Spot1039</listEntry>
+                <listEntry value="1055">@Strings.Spot1055</listEntry>
+                <listEntry value="1041">@Strings.Spot1041</listEntry>
+                <listEntry value="1092">@Strings.Spot1092</listEntry>
+                <listEntry value="1005">@Strings.Spot1005</listEntry>
+                <listEntry value="1077">@Strings.Spot1077</listEntry>
+                <listEntry value="1082">@Strings.Spot1082</listEntry>
+                <listEntry value="1145">@Strings.Spot1145</listEntry>
+                <listEntry value="1038">@Strings.Spot1038</listEntry>
+                <listEntry value="1168">@Strings.Spot1168</listEntry>
+                <listEntry value="1024">@Strings.Spot1024</listEntry>
+                <listEntry value="2758">@Strings.Spot2758</listEntry>
+                <listEntry value="1144">@Strings.Spot1144</listEntry>
+                <listEntry value="1040">@Strings.Spot1040</listEntry>
+                <listEntry value="1070">@Strings.Spot1070</listEntry>
+                <listEntry value="1162">@Strings.Spot1162</listEntry>
+                <listEntry value="996">@Strings.Spot996</listEntry>
+                <listEntry value="1170">@Strings.Spot1170</listEntry>
+                <listEntry value="1169">@Strings.Spot1169</listEntry>
+                <listEntry value="1171">@Strings.Spot1171</listEntry>
+                <listEntry value="1072">@Strings.Spot1072</listEntry>
+                <listEntry value="1101">@Strings.Spot1101</listEntry>
             </settingConfig>
         </setting>
     </settings>

@@ -119,6 +119,16 @@ module Ui {
         }
     }
 
+    // Raccourcit un texte avec "…" pour qu'il tienne dans maxW pixels
+    function fit(dc, str, font, maxW) {
+        if (dc.getTextWidthInPixels(str, font) <= maxW) { return str; }
+        var n = str.length();
+        while (n > 1 && dc.getTextWidthInPixels(str.substring(0, n) + "…", font) > maxW) {
+            n--;
+        }
+        return str.substring(0, n) + "…";
+    }
+
     // Texte centré verticalement sur y
     function text(dc, x, y, font, str, color, justify) {
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);

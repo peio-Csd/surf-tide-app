@@ -1,7 +1,7 @@
 // FICHIER GÉNÉRÉ par proxy-server/scripts/generate-watch-spots.js — ne pas modifier à la main.
 
 module SpotList {
-    const IDS = [1203, 1205, 1208, 1204, 1206, 1059, 1207, 102794, 1209, 1093, 998, 1211, 1210, 999, 1214, 1213, 1212, 1026, 1215, 997, 1221, 1216, 1217, 1027, 1087, 1091, 1021, 1218, 1000, 1001, 1011, 1194, 1196, 1198, 1195, 1099, 1197, 1192, 1191, 68, 1193, 1190, 1042, 1199, 1009, 1062, 1186, 102799, 1063, 1200, 1078, 1188, 1189, 1187, 1056, 1083, 1015, 1100, 1202, 1201, 1090, 1061, 1081, 1010, 1045, 45, 1013, 1046, 1029, 1185, 1043, 1049, 1184, 1052, 1064, 1183, 1080];
+    const IDS = [1203, 1205, 1208, 1204, 1206, 1059, 1207, 102794, 1209, 1093, 998, 1211, 1210, 999, 1214, 1213, 1212, 1026, 1215, 997, 1221, 1216, 1217, 1027, 1087, 1091, 1021, 1218, 1000, 1001, 1011, 1194, 1196, 1198, 1195, 1099, 1197, 1192, 1191, 68, 1193, 1190, 1042, 1199, 1009, 1062, 1186, 102799, 1063, 1200, 1078, 1188, 1189, 1187, 1056, 1083, 1015, 1100, 1202, 1201, 1090, 1061, 1081, 1010, 1045, 45, 1013, 1046, 1029, 1185, 1043, 1049, 1184, 1052, 1064, 1183, 1080, 1039, 1055, 1041, 1092, 1005, 1077, 1082, 1145, 1038, 1168, 1024, 2758, 1144, 1040, 1070, 1162, 996, 1170, 1169, 1171, 1072, 1101];
     const CITIES = [
         "Anglet",
         "Anglet",
@@ -76,10 +76,32 @@ module SpotList {
         "Lacanau",
         "Le Porge",
         "Le Porge",
-        "Le Verdon/mer",
+        "Le Verdon-sur-Mer",
         "Montalivet",
-        "Naujac/mer",
-        "Soulac"
+        "Naujac-sur-Mer",
+        "Soulac",
+        "Bretignolles",
+        "Bretignolles",
+        "La Tranche-sur-Mer",
+        "Les Sables d'Olonne",
+        "Longeville-sur-Mer",
+        "Olonne-sur-Mer",
+        "St Gilles Croix De Vie",
+        "Camaret-sur-Mer",
+        "Crozon",
+        "Erdeven",
+        "Guidel",
+        "Le Conquet",
+        "Locmaria Plouzane",
+        "Penmarch",
+        "Penmarch",
+        "Ploemeur",
+        "Plogoff",
+        "Plouharnel",
+        "Plouharnel",
+        "Quiberon",
+        "Quiberon",
+        "Santec"
     ];
     const BEACHES = [
         "La Barre",
@@ -158,6 +180,28 @@ module SpotList {
         "",
         "",
         "Le Pin Sec",
-        ""
+        "",
+        "La Sauzaie",
+        "Les Dunes",
+        "",
+        "",
+        "Bud Bud",
+        "Sauveterre",
+        "",
+        "Anse de Pen-Hat",
+        "La Palue",
+        "Kerhilio",
+        "Fort Bloqué",
+        "Blancs Sablons",
+        "Le Petit Minou",
+        "La Torche",
+        "Pors Carn",
+        "Les Kaolins",
+        "Baie des Trépassés",
+        "La Guérite",
+        "Sainte-Barbe",
+        "Penthièvre",
+        "Port Blanc",
+        "Le Dossen"
     ];
 }

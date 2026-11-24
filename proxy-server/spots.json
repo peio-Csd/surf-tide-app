@@ -514,7 +514,7 @@
   "id": 1052,
   "slug": "le-verdon-mer",
   "region": "gironde",
-  "city": "Le Verdon/mer",
+  "city": "Le Verdon-sur-Mer",
   "beach": ""
  },
  {
@@ -528,7 +528,7 @@
   "id": 1183,
   "slug": "le-pin-sec",
   "region": "gironde",
-  "city": "Naujac/mer",
+  "city": "Naujac-sur-Mer",
   "beach": "Le Pin Sec"
  },
  {
@@ -537,5 +537,159 @@
   "region": "gironde",
   "city": "Soulac",
   "beach": ""
+ },
+ {
+  "id": 1039,
+  "slug": "la-sauzaie-bretignolles",
+  "region": "vendee",
+  "city": "Bretignolles",
+  "beach": "La Sauzaie"
+ },
+ {
+  "id": 1055,
+  "slug": "les-dunes-bretignolles",
+  "region": "vendee",
+  "city": "Bretignolles",
+  "beach": "Les Dunes"
+ },
+ {
+  "id": 1041,
+  "slug": "la-tranche-mer",
+  "region": "vendee",
+  "city": "La Tranche-sur-Mer",
+  "beach": ""
+ },
+ {
+  "id": 1092,
+  "slug": "sables-olonne",
+  "region": "vendee",
+  "city": "Les Sables d'Olonne",
+  "beach": ""
+ },
+ {
+  "id": 1005,
+  "slug": "bud-bud",
+  "region": "vendee",
+  "city": "Longeville-sur-Mer",
+  "beach": "Bud Bud"
+ },
+ {
+  "id": 1077,
+  "slug": "sauveterre",
+  "region": "vendee",
+  "city": "Olonne-sur-Mer",
+  "beach": "Sauveterre"
+ },
+ {
+  "id": 1082,
+  "slug": "saint-gilles-croix-vie",
+  "region": "vendee",
+  "city": "St Gilles Croix De Vie",
+  "beach": ""
+ },
+ {
+  "id": 1145,
+  "slug": "anse-pen-hat",
+  "region": "bretagne",
+  "city": "Camaret-sur-Mer",
+  "beach": "Anse de Pen-Hat"
+ },
+ {
+  "id": 1038,
+  "slug": "la-palue",
+  "region": "bretagne",
+  "city": "Crozon",
+  "beach": "La Palue"
+ },
+ {
+  "id": 1168,
+  "slug": "kerhilio",
+  "region": "bretagne",
+  "city": "Erdeven",
+  "beach": "Kerhilio"
+ },
+ {
+  "id": 1024,
+  "slug": "fort-bloque",
+  "region": "bretagne",
+  "city": "Guidel",
+  "beach": "Fort Bloqué"
+ },
+ {
+  "id": 2758,
+  "slug": "blancs-sablons-conquet",
+  "region": "bretagne",
+  "city": "Le Conquet",
+  "beach": "Blancs Sablons"
+ },
+ {
+  "id": 1144,
+  "slug": "le-petit-minou",
+  "region": "bretagne",
+  "city": "Locmaria Plouzane",
+  "beach": "Le Petit Minou"
+ },
+ {
+  "id": 1040,
+  "slug": "la-torche",
+  "region": "bretagne",
+  "city": "Penmarch",
+  "beach": "La Torche"
+ },
+ {
+  "id": 1070,
+  "slug": "pors-carn",
+  "region": "bretagne",
+  "city": "Penmarch",
+  "beach": "Pors Carn"
+ },
+ {
+  "id": 1162,
+  "slug": "les-kaolins",
+  "region": "bretagne",
+  "city": "Ploemeur",
+  "beach": "Les Kaolins"
+ },
+ {
+  "id": 996,
+  "slug": "baie-trepasses",
+  "region": "bretagne",
+  "city": "Plogoff",
+  "beach": "Baie des Trépassés"
+ },
+ {
+  "id": 1170,
+  "slug": "la-guerite",
+  "region": "bretagne",
+  "city": "Plouharnel",
+  "beach": "La Guérite"
+ },
+ {
+  "id": 1169,
+  "slug": "sainte-barbe",
+  "region": "bretagne",
+  "city": "Plouharnel",
+  "beach": "Sainte-Barbe"
+ },
+ {
+  "id": 1171,
+  "slug": "penthievre-quiberon",
+  "region": "bretagne",
+  "city": "Quiberon",
+  "beach": "Penthièvre"
+ },
+ {
+  "id": 1072,
+  "slug": "port-blanc-quiberon",
+  "region": "bretagne",
+  "city": "Quiberon",
+  "beach": "Port Blanc"
+ },
+ {
+  "id": 1101,
+  "slug": "le-dossen",
+  "region": "bretagne",
+  "city": "Santec",
+  "beach": "Le Dossen"
  }
 ]
